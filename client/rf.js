@@ -6,7 +6,7 @@ class RFManager{
     }
      connect(){
         return new Promise((resolve, reject) => {
-             this.__socket=new WebSocket(uri)
+             this.__socket=new WebSocket(this.__wsURI)
             this.__readyIndicator={resolve,reject}
         this.__socket.onmessage=(message)=>{
           

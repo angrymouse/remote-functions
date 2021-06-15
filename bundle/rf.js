@@ -6,14 +6,22 @@
 
    class RFManager{
        constructor(uri=({"http:":"ws://","https:":"wss://"}[location.protocol])+window.location.host+"/") {
-           this.__socket=new WebSocket(uri);
+       this.__wsURI=uri;    
+       }
+        connect(){
+           return new Promise((resolve, reject) => {
+                this.__socket=new WebSocket(uri);
+               this.__readyIndicator={resolve,reject};
            this.__socket.onmessage=(message)=>{
              
                message=JSON.parse(message.data.toString());
 
                this.__dispatch(message.type,message.data);
            };
+
            this.__awaiting={};
+           });
+           
        }
        __dispatch(type,data){
 
@@ -22,6 +30,8 @@
       data.forEach(name=>{
           this[name]=(...args)=>this.__callFunc(name,args);
       });
+      this.__readyIndicator.resolve();
+      delete this.__readyIndicator;
    },
    "functionResult":()=>{
    if(!this.__awaiting[data.reqId]){return}

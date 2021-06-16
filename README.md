@@ -25,19 +25,31 @@ yarn add remote-functions
 #### index.js
 
 ```js
-let FManager=require("remote-functions")
-let rf=new FManager(8080)
-// or other port, or instance of http server
+let FManager = require("remote-functions");
+let rf = new FManager();
+let WebSocket = require("ws");
+let wss = WebSocket.Server({ port: 8080 });
 
-let crypto=require("crypto") 
+wss.on("connection", (socket) => {
+    let { handleMessage, disconnected } = rf.connectClient(data=>socket.send(data));
+    socket.on("close", disconnected);
+    socket.on("message", handleMessage);
+});
+
+let crypto = require("crypto");
 //module, that works only in node.js environment (database or etc, we used crypto only for example)
-function getUUID(prefix){ 
-// prefix used to show that we can pass any arguments to functions
-return prefix+"-"+crypto.randomUUID()
-// if function is asynchronous, don't worry, we can work with async functions!
+function getUUID(prefix, cb) {
+    setInterval(() => {
+        cb("hello!"); // we can even work with callbacks!
+    }, 1000);
+    // prefix used to show that we can pass any arguments to functions
+    console.log(prefix);
+    return prefix + "-" + crypto.randomUUID();
+    // if function is asynchronous, don't worry, we can work with async functions!
 }
-rf.addFunc(getUUID)
+rf.addFunc(getUUID);
 // we need to register our function to use it
+
 ```
 
 ### On client side
@@ -60,17 +72,22 @@ rf.addFunc(getUUID)
 #### script.js
 
 ```js
-(async()=>{
+(async () => {
     // All functions in RF.js is asynchronous by the nature, so we wrapped our code in async function to use awaits
-    let rf=new RF("ws://localhost:8080") 
 
-    await rf.connect() 
+    let ws = new WebSocket("ws://localhost:8080");
+    let rf = new RF((data) => ws.send(data));
+    ws.onmessage = (message) => rf.RFMessageReceived(message.data);
+    await rf.prepare();
 
-    let uuidFromServer=await rf.getUUID("myprefix")
+    let uuidFromServer = await rf.getUUID("myprefix", (text) => {
+        console.log(text); //we can work with callbacks!
+    });
     //MAGIC! Calling function on server!
 
-    console.log(uuidFromServer)
+    console.log(uuidFromServer);
     // myprefix-1234-5678-9012-3456
-})()
+})();
+
 
 ```

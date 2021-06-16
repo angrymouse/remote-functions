@@ -1,30 +1,23 @@
 class RFManager {
     __functions = new Map();
-    constructor(
-        uri = {
-            "http:": "ws://",
-            "https:": "wss://",
-        }[location.protocol] +
-            window.location.host +
-            "/"
-    ) {
-        this.__wsURI = uri;
+    __awaiting = {};
+    constructor(sendMessage) {
+        this.__sendRaw = sendMessage;
+        this.__ready = false;
     }
-    connect() {
+    prepare() {
         return new Promise((resolve, reject) => {
-            this.__socket = new WebSocket(this.__wsURI);
-            this.__readyIndicator = {
-                resolve,
-                reject,
-            };
-            this.__socket.onmessage = (message) => {
-                message = JSON.parse(message.data.toString());
-
-                this.__dispatch(message.type, message.data);
-            };
-
-            this.__awaiting = {};
+            if (this.__ready) {
+                resolve();
+            } else {
+                this.__readyIndicator = { resolve, reject };
+            }
         });
+    }
+    RFMessageReceived(message) {
+        message = JSON.parse(message);
+
+        this.__dispatch(message.type, message.data);
     }
     __dispatch(type, data) {
         ({
@@ -32,6 +25,7 @@ class RFManager {
                 data.forEach((name) => {
                     this[name] = (...args) => this.__callFunc(name, args);
                 });
+                this.__ready = true;
                 if (this.__readyIndicator) {
                     this.__readyIndicator.resolve();
                     delete this.__readyIndicator;
@@ -59,7 +53,7 @@ class RFManager {
     }
 
     __send(type, data) {
-        this.__socket.send(
+        this.__sendRaw(
             JSON.stringify({
                 type,
                 data,

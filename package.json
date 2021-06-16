@@ -1,6 +1,6 @@
 {
   "name": "remote-functions",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "Forgot ugly REST/GraphQL APIs! Call server functions directly from browser!",
   "main": "index.js",
   "repository": "https://github.com/angrymouse/remote-functions",

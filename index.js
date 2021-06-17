@@ -1,14 +1,21 @@
-const EventEmitter = require("events");
-
 class RemoteFunctionsServerManager {
     clients = [];
+    __callbacks = new Map();
     constructor(functions = []) {
-        this.functions = new Map(functions.map((f) => [f.name, f]));
+        this.functions = new Map(
+            functions.map((f) => [
+                f.name,
+                (...args) => this.__callFunc(f, args),
+            ])
+        );
     }
     connectClient(sendToClient) {
         let client = {
             id: Math.random().toString(16).substr(2),
             send: sendToClient,
+            functions: {},
+            readyState: 0,
+            readyIndicator: { resolve: () => {}, reject: () => {} },
             _listeners: [],
             listen(cb) {
                 this._listeners.push(cb);
@@ -17,6 +24,7 @@ class RemoteFunctionsServerManager {
                 this._listeners = this._listeners.filter((l) => l != cb);
             },
         };
+
         this.clients.push(client);
         client.listen((message) => {
             try {
@@ -52,6 +60,28 @@ class RemoteFunctionsServerManager {
                                 );
                             });
                     },
+                    availableFuncs: (data) => {
+                        data.forEach((name) => {
+                            client.functions[name] = (...args) =>
+                                this.__callClientFunc(client, name, args);
+                        });
+                        client.send(
+                            JSON.stringify({
+                                type: "funcsReceived",
+                                data: true,
+                            })
+                        );
+                        client.readyState++;
+                        if (client.readyState == 2) {
+                            client.readyIndicator.resolve();
+                        }
+                    },
+                    funcsReceived: (data) => {
+                        client.readyState++;
+                        if (client.readyState == 2) {
+                            client.readyIndicator.resolve();
+                        }
+                    },
                 }[message.type](message.data));
             } catch (e) {
                 return client.send(
@@ -62,12 +92,7 @@ class RemoteFunctionsServerManager {
                 );
             }
         });
-        client.send(
-            JSON.stringify({
-                type: "availableFuncs",
-                data: Array.from(this.functions.keys()),
-            })
-        );
+
         return {
             handleMessage: (data) => {
                 client._listeners.forEach((c) => {
@@ -77,6 +102,22 @@ class RemoteFunctionsServerManager {
             disconnected: () => {
                 this.clients = this.clients.filter((c) => c.id != client.id);
             },
+            clientReady: () => {
+                return new Promise((resolve, reject) => {
+                    if (client.readyState == 2) {
+                        resolve();
+                    } else {
+                        client.readyIndicator = { resolve, reject };
+                        client.send(
+                            JSON.stringify({
+                                type: "availableFuncs",
+                                data: Array.from(this.functions.keys()),
+                            })
+                        );
+                    }
+                });
+            },
+            rfc: client.functions,
         };
     }
     addFunc(func) {
@@ -102,6 +143,41 @@ class RemoteFunctionsServerManager {
             }
         });
     }
+
+    __callClientFunc(client, fname, args) {
+        return new Promise((resolve, reject) => {
+            let reqId = Math.random().toString(16).substr(2);
+            client.send("callClientFunc", {
+                fname,
+                args: this.__serializeArgs(args),
+                reqId,
+            });
+            this.__awaiting[reqId] = {
+                resolve,
+                reject,
+            };
+        });
+    }
+    __serializeArgs(args) {
+        return args.map(this.__serializeArg);
+    }
+    __serializeArg = (arg) => {
+        let _this = this;
+
+        let scenario = {
+            object: () => ({
+                type: "object",
+                data: _this.__serializeObject(arg),
+            }),
+            function: function () {
+                return {
+                    type: "function",
+                    data: _this.__registerCallback(arg),
+                };
+            },
+        }[typeof arg];
+        return scenario ? scenario() : arg;
+    };
     __deserializeArgs(client, args) {
         return args.map((a) => this.__deserializeArg(client, a));
     }
@@ -113,7 +189,7 @@ class RemoteFunctionsServerManager {
                     function:
                         () =>
                         async (...args) => {
-                            this.__callClientFunc(client, arg.data, args);
+                            this.__callClientCallback(client, arg.data, args);
                         },
                 }[arg.type]() || arg
             );
@@ -126,16 +202,37 @@ class RemoteFunctionsServerManager {
             .map((_key, value) => this.__deserializeArg(client, value))
             .reduce((pv, cv) => ({ ...pv, [cv[0]]: cv[1] }), {});
     }
-    __callClientFunc(client, id, args) {
+    __callClientCallback(client, id, args) {
         client.send(
             JSON.stringify({
-                type: "callClientFunc",
+                type: "callClientCallback",
                 data: {
                     id,
                     args,
                 },
             })
         );
+    }
+    __serializeObject(object) {
+        return Object.entries(object)
+            .map((_key, value) => this.__serializeArg(value))
+            .reduce((pv, cv) => ({ ...pv, [cv[0]]: cv[1] }), {});
+    }
+    __registerCallback(func) {
+        let foundFunction = Array.from(this.__callbacks.entries()).find(
+            (funcInfo) => {
+                let [, fun] = funcInfo;
+                return func == fun;
+            }
+        );
+        let id;
+        if (foundFunction) {
+            [id] = foundFunction;
+        } else {
+            id = Math.random().toString(16).substr(2);
+            this.__callbacks.set(id, func);
+        }
+        return id;
     }
 }
 module.exports = RemoteFunctionsServerManager;

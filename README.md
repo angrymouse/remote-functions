@@ -28,19 +28,21 @@ yarn add remote-functions
 let FManager = require("remote-functions");
 let rf = new FManager();
 let WebSocket = require("ws");
-let wss = WebSocket.Server({ port: 8080 });
+let wss = new WebSocket.Server({ port: 8080 });
 
-wss.on("connection", (socket) => {
-    let { handleMessage, disconnected } = rf.connectClient(data=>socket.send(data));
-    socket.on("close", disconnected);
-    socket.on("message", handleMessage);
+wss.on("connection", async (socket) => {
+    let client = await rf.connectClient((d) => socket.send(d));
+
+    socket.on("close", client.disconnected);
+    socket.on("message", (m) => client.handleMessage(m));
+    await client.clientReady();
 });
 
 let crypto = require("crypto");
 //module, that works only in node.js environment (database or etc, we used crypto only for example)
 function getUUID(prefix, cb) {
     setInterval(() => {
-        cb("hello!"); // we can even work with callbacks!
+        cb("hello!"); // we can even pass callbacks!
     }, 1000);
     // prefix used to show that we can pass any arguments to functions
     console.log(prefix);
@@ -49,6 +51,7 @@ function getUUID(prefix, cb) {
 }
 rf.addFunc(getUUID);
 // we need to register our function to use it
+
 
 ```
 
@@ -76,18 +79,22 @@ rf.addFunc(getUUID);
     // All functions in RF.js is asynchronous by the nature, so we wrapped our code in async function to use awaits
 
     let ws = new WebSocket("ws://localhost:8080");
-    let rf = new RF((data) => ws.send(data));
+    window.rf = new RF();
     ws.onmessage = (message) => rf.RFMessageReceived(message.data);
-    await rf.prepare();
+    ws.onopen = async () => {
+        //we can't send data to socket while it's connecting, so we need to wait while socket will be connected
+        await rf.RFPrepare((data) => ws.send(data));
 
-    let uuidFromServer = await rf.getUUID("myprefix", (text) => {
-        console.log(text); //we can work with callbacks!
-    });
-    //MAGIC! Calling function on server!
+        let uuidFromServer = await rf.getUUID("myprefix", (text) => {
+            console.log(text); //we can work with callbacks!
+        });
+        //MAGIC! Calling function on server!
 
-    console.log(uuidFromServer);
-    // myprefix-1234-5678-9012-3456
+        console.log(uuidFromServer);
+        // myprefix-1234-5678-9012-3456
+    };
 })();
+
 
 
 ```

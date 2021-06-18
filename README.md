@@ -91,7 +91,7 @@ rf.addFunc(getUUID);
         //MAGIC! Calling function on server!
 
         console.log(uuidFromServer);
-        // myprefix-1234-5678-9012-3456
+        // myprefix-1234-5678-9012-3459
     };
 })();
 

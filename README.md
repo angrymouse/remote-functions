@@ -95,6 +95,4 @@ rf.addFunc(getUUID);
     };
 })();
 
-
-
 ```

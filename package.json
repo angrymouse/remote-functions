@@ -7,9 +7,7 @@
   "author": "Angrymouse <micevx@gmail.com>",
   "license": "MIT",
   "private": false,
-  "dependencies": {
-    "ws": "^7.4.6"
-  },
+  "dependencies": {},
   "keywords": [
     "api",
     "server",

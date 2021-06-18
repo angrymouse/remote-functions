@@ -3,7 +3,7 @@
 # Remote Functions library
 
 Simple, but yet powerful library built for easy communication between server and client
-
+![Discord server](https://discord.gg/HX4hcZ4zqj)
 ## Installation
 
 ```sh

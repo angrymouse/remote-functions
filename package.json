@@ -1,6 +1,6 @@
 {
   "name": "remote-functions",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Forgot ugly REST/GraphQL APIs! Call server functions directly from browser!",
   "main": "index.js",
   "repository": "https://github.com/angrymouse/remote-functions",
@@ -19,7 +19,10 @@
     "front-end",
     "ws",
     "websocket",
-    "realtime"
+    "realtime",
+    "rpc",
+    "communication",
+    "frontend"
   ],
   "devDependencies": {
     "rollup-plugin-terser": "^7.0.2"

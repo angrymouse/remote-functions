@@ -73,16 +73,11 @@ class RFManager {
                 }
                 fun(...this.__deserializeArgs(data.args))
                     .then((res) => {
-                        this.__send(
-                            JSON.stringify({
-                                type: "functionResult",
-                                data: {
-                                    reqId: data.reqId,
-                                    resultType: "resolve",
-                                    result: res,
-                                },
-                            })
-                        );
+                        this.__send("functionResult", {
+                            reqId: data.reqId,
+                            resultType: "resolve",
+                            result: res,
+                        });
                     })
                     .catch((error) => {
                         this.__send(

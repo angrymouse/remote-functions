@@ -1,6 +1,7 @@
 class RemoteFunctionsServerManager {
     clients = [];
     __callbacks = new Map();
+    __awaiting = {};
     constructor(functions = []) {
         this.functions = new Map(
             functions.map((f) => [
@@ -82,6 +83,16 @@ class RemoteFunctionsServerManager {
                             client.readyIndicator.resolve();
                         }
                     },
+                    functionResult: (data) => {
+                        if (!this.__awaiting[data.reqId]) {
+                            return;
+                        }
+
+                        this.__awaiting[data.reqId][data.resultType](
+                            data.result
+                        );
+                        delete this.__awaiting[data.reqId];
+                    },
                 }[message.type](message.data));
             } catch (e) {
                 return client.send(
@@ -147,11 +158,16 @@ class RemoteFunctionsServerManager {
     __callClientFunc(client, fname, args) {
         return new Promise((resolve, reject) => {
             let reqId = Math.random().toString(16).substr(2);
-            client.send("callClientFunc", {
-                fname,
-                args: this.__serializeArgs(args),
-                reqId,
-            });
+            client.send(
+                JSON.stringify({
+                    type: "callClientFunc",
+                    data: {
+                        fname,
+                        args: this.__serializeArgs(args),
+                        reqId,
+                    },
+                })
+            );
             this.__awaiting[reqId] = {
                 resolve,
                 reject,

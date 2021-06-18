@@ -5,7 +5,7 @@
   "main": "index.js",
   "repository": "https://github.com/angrymouse/remote-functions",
   "author": "Angrymouse <micevx@gmail.com>",
-  "license": "MIT",
+  "license": "ISC",
   "private": false,
   "dependencies": {},
   "keywords": [

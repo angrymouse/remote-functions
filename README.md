@@ -3,7 +3,12 @@
 # Remote Functions library
 
 Simple, but yet powerful library built for easy communication between server and client
-![Discord server](https://discord.gg/HX4hcZ4zqj)
+
+[![Support Server](https://img.shields.io/discord/747436736208044122.svg?label=Angrymouse%20Dev%20Support&logo=Discord&colorB=7289da&style=for-the-badge)](https://discord.gg/qbV4S9w7h2)
+
+[![Maintaner](https://img.shields.io/badge/maintainer-Angrymouse-darkred)](https://github.com/angrymouse)
+[![GitHub release](https://img.shields.io/github/release/angrymouse/remote-functions.svg)](https://GitHub.com/angrymouse/remote-functions/releases/)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
 ## Installation
 
 ```sh

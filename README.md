@@ -72,7 +72,7 @@ rf.addFunc(getUUID);
     <title>RF.js test</title>
 </head>
 <body>
-    <script src="https://unpkg.com/remote-functions@latest/bundle/rf.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/remote-functions/bundle/rf.js"></script>
     <script defer src="script.js"></script>
 </body>
 </html>

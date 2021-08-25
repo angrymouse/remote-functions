@@ -4,7 +4,7 @@
 
 Simple, but yet powerful library built for easy communication between server and client
 
-[![Support Server](https://img.shields.io/discord/747436736208044122.svg?label=Angrymouse%20Dev%20Support&logo=Discord&colorB=7289da&style=for-the-badge)](https://discord.gg/qbV4S9w7h2)
+[![Support Server](https://img.shields.io/discord/868937600663162960.svg?label=Angrymouse%20Dev%20Support&logo=Discord&colorB=7289da&style=for-the-badge)](https://discord.gg/CSdEyGpBwr)
 
 [![Maintaner](https://img.shields.io/badge/maintainer-Angrymouse-darkred)](https://github.com/angrymouse)
 [![GitHub release](https://img.shields.io/github/release/angrymouse/remote-functions.svg)](https://GitHub.com/angrymouse/remote-functions/releases/)

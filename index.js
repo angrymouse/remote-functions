@@ -131,19 +131,22 @@ class RemoteFunctionsServerManager {
             rfc: client.functions,
         };
     }
-    addFunc(func) {
-        this.functions.set(
-            func.name,
-            async (...args) => await this.__callFunc(func, args)
-        );
-        this.clients.forEach((client) => {
-            client.send(
-                JSON.stringify({
-                    type: "availableFuncs",
-                    data: Array.from(this.functions.keys()),
-                })
-            );
-        });
+    addFunc(...args) {
+        let func = (typeof args[0] == "function" || args[0] instanceof Function) ? args[0] : args[1]; // if first argument is function
+        let name = (typeof args[0] == "string" || args[0] instanceof String) ? args[0] : func.name;   // if first argument is string
+        if (name != null) {
+            this.functions.set(name, async (...args) => await this.__callFunc(func, args));
+            this.clients.forEach((client) => {
+                client.send(
+                    JSON.stringify({
+                        type: "availableFuncs",
+                        data: Array.from(this.functions.keys()),
+                    })
+                );
+            });
+        } else {
+            console.error("Function name not defined");
+        }
     }
     async __callFunc(func, args) {
         return new Promise(async (resolve, reject) => {

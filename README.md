@@ -82,7 +82,7 @@ rf.addFunc(getUUID);
 
 ```js
 (async () => {
-    // All functions in RF.js is asynchronous by the nature, so we wrapped our code in async function to use awaits
+    // All functions in RF.js are asynchronous by the nature, so we wrapped our code in async function to use awaits
 
     let ws = new WebSocket("ws://localhost:8080");
     window.rf = new RF();
